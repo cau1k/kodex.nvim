@@ -4,7 +4,7 @@
 ---Particularly useful when inputting or selecting a prompt
 ---because those change the active mode, window, etc.
 ---So this can store state prior to that.
----@class opencode.Context
+---@class kodex.Context
 ---@field win integer
 ---@field buf integer
 ---@field row integer
@@ -76,11 +76,12 @@ end
 
 ---Render `opts.contexts` in `prompt`.
 ---@param prompt string
----@param opts? { agents?: opencode.client.Agent[] }
+---@param opts? { agents?: kodex.client.Agent[] }
 ---@return { input: snacks.picker.Text[], output: snacks.picker.Text[] }
 function Context:render(prompt, opts)
+  opts = opts or {}
   -- TODO: Highlight opts.agents
-  local contexts = require("opencode.config").opts.contexts or {}
+  local contexts = require("kodex.config").opts.contexts or {}
   local placeholders = vim.tbl_keys(contexts)
   table.sort(placeholders, function(a, b)
     return #a > #b -- longest first, in case some overlap
@@ -108,12 +109,12 @@ function Context:render(prompt, opts)
 
     -- If a placeholder is found, add it and its value
     if next_placeholder then
-      table.insert(input, { next_placeholder, "OpencodeContextPlaceholder" })
+      table.insert(input, { next_placeholder, "KodexContextPlaceholder" })
       local value = contexts[next_placeholder](self)
       if value then
-        table.insert(output, { value, "OpencodeContextValue" })
+        table.insert(output, { value, "KodexContextValue" })
       else
-        table.insert(output, { next_placeholder, "OpencodeContextPlaceholder" })
+        table.insert(output, { next_placeholder, "KodexContextPlaceholder" })
       end
       i = next_pos + #next_placeholder
     else
@@ -174,14 +175,14 @@ function Context.extmarks(rendered)
   return extmarks
 end
 
----Format a location for `opencode`.
----e.g. `@opencode.lua L21:C10-L65:C11`
+---Format a location for `codex`.
+---e.g. `@kodex.lua L21:C10-L65:C11`
 ---@param args { buf?: integer, path?: string, start_line?: integer, start_col?: integer, end_line?: integer, end_col?: integer }
 function Context.format(args)
   local result = ""
   if (args.buf and is_buf_valid(args.buf)) or args.path then
     local rel_path = vim.fn.fnamemodify(args.path or vim.api.nvim_buf_get_name(args.buf), ":.")
-    -- Must be preceeded by @ and followed by space for `opencode` to parse as a file reference
+    -- Must be preceeded by @ and followed by space for `codex` to parse as a file reference
     result = "@" .. rel_path .. " "
   end
   if args.start_line and args.end_line and args.start_line > args.end_line then

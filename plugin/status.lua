@@ -1,8 +1,8 @@
 vim.api.nvim_create_autocmd("User", {
-  group = vim.api.nvim_create_augroup("OpencodeStatus", { clear = true }),
-  pattern = "OpencodeEvent",
+  group = vim.api.nvim_create_augroup("KodexStatus", { clear = true }),
+  pattern = "KodexEvent",
   callback = function(args)
-    require("opencode.status").update(args.data.event)
+    require("kodex.status").update(args.data)
   end,
-  desc = "Update opencode status",
+  desc = "Update kodex status",
 })

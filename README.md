@@ -1,21 +1,19 @@
-# opencode.nvim
+# kodex.nvim
 
-Integrate the [opencode](https://github.com/sst/opencode) AI assistant with Neovim — streamline editor-aware research, reviews, and requests. 
+Integrate the [Codex](https://github.com/sst/codex) AI assistant with Neovim—streamline editor-aware research, reviews, and automation without leaving your buffers.
 
 https://github.com/user-attachments/assets/01e4e2fc-bbfa-427e-b9dc-c1c1badaa90e
 
 ## ✨ Features
 
-- Auto-connect to *any* `opencode` running inside Neovim's CWD, or manage an embedded instance.
-- Input prompts with completions, highlights, and normal-mode support.
-- Select prompts from a library and define your own.
+- Talk to `codex app-server` directly over JSON-RPC.
+- Prompt with completions, highlights, and normal-mode support.
+- Pick prompts from a library or define your own.
 - Inject relevant editor context (buffer, cursor, selection, diagnostics, ...).
-- Control `opencode` with commands.
-- Auto-reload buffers edited by `opencode` in real-time.
-- Respond to `opencode` permission requests.
-- Monitor state via statusline component.
-- Forward `opencode`'s Server-Sent-Events as Neovim autocmds for automation.
-- Sensible defaults with well-documented, flexible configuration and API to fit your workflow.
+- Control Codex with commands or map your own shortcuts.
+- Auto-reload buffers edited by Codex in real time.
+- Approve or reject Codex permission requests from inside Neovim.
+- Watch Codex activity via a statusline component and `KodexEvent` autocmds.
 
 ## 📦 Setup
 
@@ -23,29 +21,29 @@ https://github.com/user-attachments/assets/01e4e2fc-bbfa-427e-b9dc-c1c1badaa90e
 
 ```lua
 {
-  "NickvanDyke/opencode.nvim",
+  "cau1k/kodex.nvim",
   dependencies = {
     -- Recommended for `ask()` and `select()`.
-    -- Required for default `toggle()` implementation.
+    -- Required for the default `toggle()` implementation.
     { "folke/snacks.nvim", opts = { input = {}, picker = {}, terminal = {} } },
   },
   config = function()
-    ---@type opencode.Opts
-    vim.g.opencode_opts = {
-      -- Your configuration, if any — see `lua/opencode/config.lua`, or "goto definition".
+    ---@type kodex.Opts
+    vim.g.kodex_opts = {
+      -- Your configuration, if any — see `lua/kodex/config.lua`, or "goto definition".
     }
 
     -- Required for `opts.auto_reload`.
     vim.o.autoread = true
 
     -- Recommended/example keymaps.
-    vim.keymap.set({ "n", "x" }, "<C-a>", function() require("opencode").ask("@this: ", { submit = true }) end, { desc = "Ask opencode" })
-    vim.keymap.set({ "n", "x" }, "<C-x>", function() require("opencode").select() end,                          { desc = "Execute opencode action…" })
-    vim.keymap.set({ "n", "x" },    "ga", function() require("opencode").prompt("@this") end,                   { desc = "Add to opencode" })
-    vim.keymap.set({ "n", "t" }, "<C-.>", function() require("opencode").toggle() end,                          { desc = "Toggle opencode" })
-    vim.keymap.set("n",        "<S-C-u>", function() require("opencode").command("session.half.page.up") end,   { desc = "opencode half page up" })
-    vim.keymap.set("n",        "<S-C-d>", function() require("opencode").command("session.half.page.down") end, { desc = "opencode half page down" })
-    -- You may want these if you stick with the opinionated "<C-a>" and "<C-x>" above — otherwise consider "<leader>o".
+    vim.keymap.set({ "n", "x" }, "<C-a>", function() require("kodex").ask("@this: ", { submit = true }) end, { desc = "Ask Kodex" })
+    vim.keymap.set({ "n", "x" }, "<C-x>", function() require("kodex").select() end,                          { desc = "Execute Kodex action…" })
+    vim.keymap.set({ "n", "x" },    "ga", function() require("kodex").prompt("@this") end,                   { desc = "Add to Codex" })
+    vim.keymap.set({ "n", "t" }, "<C-.>", function() require("kodex").toggle() end,                          { desc = "Toggle Codex" })
+    vim.keymap.set("n",        "<S-C-u>", function() require("kodex").command("session.half.page.up") end,   { desc = "Codex half page up" })
+    vim.keymap.set("n",        "<S-C-d>", function() require("kodex").command("session.half.page.down") end, { desc = "Codex half page down" })
+    -- You may want these if you stick with the opinionated "<C-a>" and "<C-x>" above — otherwise consider "<leader>k".
     vim.keymap.set('n', '+', '<C-a>', { desc = 'Increment', noremap = true })
     vim.keymap.set('n', '-', '<C-x>', { desc = 'Decrement', noremap = true })
   end,
@@ -58,28 +56,28 @@ https://github.com/user-attachments/assets/01e4e2fc-bbfa-427e-b9dc-c1c1badaa90e
 ```nix
 programs.nixvim = {
   extraPlugins = [
-    pkgs.vimPlugins.opencode-nvim
+    pkgs.vimPlugins.kodex-nvim
   ];
 };
 ```
 </details>
 
 > [!TIP]
-> Run `:checkhealth opencode` after installation.
+> Run `:checkhealth kodex` after installation.
 
 ## ⚙️ Configuration
 
-`opencode.nvim` provides a rich and reliable default experience — see all available options and their defaults [here](./lua/opencode/config.lua).
+`kodex.nvim` provides a rich, reliable default experience — see all available options and their defaults in [`lua/kodex/config.lua`](./lua/kodex/config.lua).
 
 ### Provider
 
-By default, `opencode.nvim` will use [`snacks.terminal`](https://github.com/folke/snacks.nvim/blob/main/docs/terminal.md) (if available) to run `opencode` when it isn't already running:
+By default, `kodex.nvim` will launch `codex app-server` via [`snacks.terminal`](https://github.com/folke/snacks.nvim/blob/main/docs/terminal.md) when it is available:
 
 ```lua
-vim.g.opencode_opts = {
+vim.g.kodex_opts = {
   provider = {
     enabled = "snacks",
-    ---@type opencode.provider.Snacks
+    ---@type kodex.provider.Snacks
     snacks = {
       -- Customize `snacks.terminal` to your liking.
     }
@@ -87,55 +85,54 @@ vim.g.opencode_opts = {
 }
 ```
 
-You can manually run `opencode` inside Neovim's CWD however you like (terminal plugin, multiplexer, app, ...) and `opencode.nvim` will find it! But consider configuring `opencode.nvim` to manage it on your behalf:
+Already running Codex yourself? Configure your own provider or disable the built-in one entirely:
 
 ```lua
-vim.g.opencode_opts = {
-  ---@type opencode.Provider
+vim.g.kodex_opts = {
+  ---@type kodex.Provider
   provider = {
     toggle = function(self)
-      -- Called by `require("opencode").toggle()`.
+      -- Called by `require("kodex").toggle()`.
     end,
     start = function(self)
-      -- Called when sending a prompt or command to `opencode` but no process was found.
-      -- `opencode.nvim` will poll for a couple seconds waiting for one to appear.
+      -- Called when sending a prompt or command to Codex but no process was found.
     end,
     show = function(self)
-      -- Called when a prompt or command is sent to `opencode`,
+      -- Called when a prompt or command is sent to Codex,
       -- *and* this provider's `toggle` or `start` has previously been called
-      -- (so as to not interfere when `opencode` was started externally).
+      -- (so as to not interfere when Codex was started externally).
     end
   }
 }
 ```
 
 > [!TIP]
-> I only use `snacks.terminal`, but welcome PRs adding your custom method as a built-in provider 🙂
+> Pull requests adding additional built-in providers are welcome!
 
 ## 🚀 Usage
 
-### ✍️ Ask — `require("opencode").ask()`
+### ✍️ Ask — `require("kodex").ask()`
 
-Input a prompt to send to `opencode`.
+Input a prompt to send to Codex.
 
 <img width="800" alt="image" src="https://github.com/user-attachments/assets/8591c610-4824-4480-9e6d-0c94e9c18f3a" />
 
 - Press `<Up>` to browse recent asks.
-- Fetches available subagents from `opencode`.
+- Fetches available subagents from Codex.
 - Highlights placeholders.
 - Completes placeholders and subagents.
   - Press `<Tab>` to trigger built-in completion.
   - When using `blink.cmp` and `snacks.input`, registers `opts.auto_register_cmp_sources`.
 
-### 📝 Select — `require("opencode").select()`
+### 📝 Select — `require("kodex").select()`
 
-Select from all `opencode.nvim` functionality.
+Select from all `kodex.nvim` functionality.
 
 <img width="800" alt="image" src="https://github.com/user-attachments/assets/afd85acd-e4b3-47d2-b92f-f58d25972edb" />
 
-### 🗣️ Prompt — `require("opencode").prompt()` | `:[range]OpencodePrompt`
+### 🗣️ Prompt — `require("kodex").prompt()` | `:[range]KodexPrompt`
 
-Send a prompt to `opencode`.
+Send a prompt to Codex.
 
 #### Contexts
 
@@ -158,7 +155,7 @@ Replaces placeholders in the prompt with the corresponding context:
 
 Reference a prompt by name to review, explain, and improve your code:
 
-| Name                               | Prompt                                                    |
+| Name | Prompt |
 |------------------------------------|-----------------------------------------------------------|
 | `ask`         | *...*                                                             |
 | `explain`     | Explain `@this` and its context                                   |
@@ -172,11 +169,11 @@ Reference a prompt by name to review, explain, and improve your code:
 | `buffer`  | `@buffer`                                                             |
 | `this`    | `@this`                                                               |
 
-### 🧑‍🏫 Command — `require("opencode").command()`
+### 🧑‍🏫 Command — `require("kodex").command()`
 
-Send a command to `opencode`:
+Send a command to Codex:
 
-| Command                 | Description                                              |
+| Command | Description |
 |-------------------------|----------------------------------------------------------|
 | `session.list`          | List sessions                                            |
 | `session.new`             | Start a new session                                      |
@@ -197,18 +194,18 @@ Send a command to `opencode`:
 
 ## 👀 Events
 
-`opencode.nvim` forwards `opencode`'s Server-Sent-Events as an `OpencodeEvent` autocmd:
+`kodex.nvim` forwards Codex JSON-RPC notifications as a `KodexEvent` autocmd:
 
 ```lua
--- Listen for `opencode` events
+-- Listen for Codex events
 vim.api.nvim_create_autocmd("User", {
-  pattern = "OpencodeEvent",
+  pattern = "KodexEvent",
   callback = function(args)
-    -- See the available event types and their properties
+    -- See the available event payload
     vim.notify(vim.inspect(args.data.event))
     -- Do something useful
-    if args.data.event.type == "session.idle" then
-      vim.notify("`opencode` finished responding")
+    if args.data.event and args.data.event.type == "session.idle" then
+      vim.notify("Codex finished responding")
     end
   end,
 })
@@ -216,11 +213,11 @@ vim.api.nvim_create_autocmd("User", {
 
 ### Edits
 
-When `opencode` edits a file, `opencode.nvim` automatically reloads the corresponding buffer.
+When Codex edits a file, `kodex.nvim` automatically reloads the corresponding buffer.
 
 ### Permissions
 
-When `opencode` requests a permission, `opencode.nvim` waits for idle to ask you to approve or deny it.
+When Codex requests a permission, `kodex.nvim` waits for idle before prompting you to approve, reject, or abort it.
 
 <img width="800" alt="image" src="https://github.com/user-attachments/assets/643681ca-75db-4621-8a4a-e744c03c4b4f" />
 
@@ -233,7 +230,7 @@ require("lualine").setup({
   sections = {
     lualine_z = {
       {
-        require("opencode").statusline,
+        require("kodex").statusline,
       },
     }
   }
@@ -243,5 +240,5 @@ require("lualine").setup({
 ## 🙏 Acknowledgments
 
 - Inspired by [nvim-aider](https://github.com/GeorgesAlkhouri/nvim-aider), [neopencode.nvim](https://github.com/loukotal/neopencode.nvim), and [sidekick.nvim](https://github.com/folke/sidekick.nvim).
-- Uses `opencode`'s TUI for simplicity — see [sudo-tee/opencode.nvim](https://github.com/sudo-tee/opencode.nvim) for a Neovim frontend.
+- Uses Codex's app-server for simplicity — see [sudo-tee/opencode.nvim](https://github.com/sudo-tee/opencode.nvim) for a Neovim frontend.
 - [mcp-neovim-server](https://github.com/bigcodegen/mcp-neovim-server) may better suit you, but it lacks customization and tool calls are slow and unreliable.
